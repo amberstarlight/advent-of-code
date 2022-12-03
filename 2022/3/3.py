@@ -16,19 +16,32 @@ def split_string(string):
     return [string[first_half], string[second_half]]
 
 
-def shared_char(list_a, list_b):
-    shared_char = set(list_a) & set(list_b)
-    return shared_char.pop()
+def common_element(arr):
+    # *arr -> unpacking operator
+    common = set(arr[0]).intersection(*arr)
+    return common.pop()
 
 
 sum_priorities = 0
 
 for index, backpack in enumerate(backpack_content_list):
     compartments = split_string(backpack)
-    shared_item_type = shared_char(compartments[0], compartments[1])
+    shared_item_type = common_element([compartments[0], compartments[1]])
     item_priority = item_types.index(shared_item_type) + 1
-
-    print(shared_item_type, item_priority)
     sum_priorities += item_priority
 
 print(sum_priorities)
+
+# Part 2
+groups = []
+group_sum_priorities = 0
+
+for i in range(0, len(backpack_content_list), 3):
+    groups.append(backpack_content_list[i : i + 3])
+
+for group in groups:
+    shared_item_type = common_element([group[0], group[1], group[2]])
+    item_priority = item_types.index(shared_item_type) + 1
+    group_sum_priorities += item_priority
+
+print(group_sum_priorities)
