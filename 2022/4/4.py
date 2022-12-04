@@ -11,6 +11,7 @@ assignment_pairs = list(filter(None, input.split("\n")))  # filter out newlines
 # OR
 # if a2 >= a1 & b2 <= b1
 
+fully_contains = 0
 overlap_count = 0
 
 for pair in assignment_pairs:
@@ -25,6 +26,15 @@ for pair in assignment_pairs:
     b2 = int(elf2[1])
 
     if (a1 >= a2 and b1 <= b2) or (a2 >= a1 and b2 <= b1):
+        fully_contains += 1
+
+    # Part 2
+    # in what circumstances can one range overlap another
+    # + 1 because range() doesn't include the second arg...
+    overlap = set(range(a1, b1 + 1)).intersection(range(a2, b2 + 1))
+
+    if len(overlap):
         overlap_count += 1
 
+print(fully_contains)
 print(overlap_count)
