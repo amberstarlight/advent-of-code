@@ -1,8 +1,9 @@
 # Day 5: Supply Stacks
 
 from pathlib import Path
+import re
 
-input = Path("test_input.txt").read_text()
+input = Path("input.txt").read_text()
 
 crate_input = input.split("\n\n")[0]
 rearrangement_procedure = list(filter(None, input.split("\n\n")[1].split("\n")))
@@ -36,7 +37,34 @@ def parse_crates(crate_string: str):
     return stacks
 
 
-crates = parse_crates(crate_input)
+def rearrange_crates(crates: list, instructions: list):
+    rearranged_crates = crates.copy()
 
-for n, stack in enumerate(crates):
-    print(n, stack)
+    for instruction in instructions:
+        matches = re.findall(r".... (\d{1,}) .... (\d{1,}) .. (\d{1,})", instruction)
+        instruction_items = list(matches[0])
+
+        crates_to_move = int(instruction_items[0])
+        from_stack = int(instruction_items[1]) - 1  # because crates is zero-indexed
+        to_stack = int(instruction_items[2]) - 1  # because crates is zero-indexed
+
+        for i in range(0, crates_to_move):
+            moving_crate = crates[from_stack].pop(0)
+            crates[to_stack].insert(0, moving_crate)
+
+    return rearranged_crates
+
+
+crates = parse_crates(crate_input)
+print("Starting crates:", crates)
+
+rearranged_crates = rearrange_crates(crates, rearrangement_procedure)
+print("Rearranged crates:", crates)
+
+message = []
+
+for stack in rearranged_crates:
+    top_crate = stack.pop(0)
+    message.append(top_crate)
+
+print("Message:", "".join(message))
