@@ -2,6 +2,7 @@
 
 from pathlib import Path
 import re
+import copy
 
 input = Path("input.txt").read_text()
 
@@ -19,8 +20,8 @@ rearrangement_procedure = list(filter(None, input.split("\n\n")[1].split("\n")))
 
 
 def parse_crates(crate_string: str):
-    crate_layers = crate_input.split("\n")[:-1]
-    num_stacks = len(crate_input.split("\n").pop(-1).split())
+    crate_layers = crate_string.split("\n")[:-1]
+    num_stacks = len(crate_string.split("\n").pop(-1).split())
 
     stacks = []
     for n in range(0, num_stacks):
@@ -37,8 +38,8 @@ def parse_crates(crate_string: str):
     return stacks
 
 
-def rearrange_crates(crates: list, instructions: list):
-    rearranged_crates = crates.copy()
+def rearrange_crates(crates: list, instructions: list, crane_type: str):
+    arrangement = copy.deepcopy(crates)
 
     for instruction in instructions:
         matches = re.findall(r".... (\d{1,}) .... (\d{1,}) .. (\d{1,})", instruction)
@@ -49,22 +50,42 @@ def rearrange_crates(crates: list, instructions: list):
         to_stack = int(instruction_items[2]) - 1  # because crates is zero-indexed
 
         for i in range(0, crates_to_move):
-            moving_crate = crates[from_stack].pop(0)
-            crates[to_stack].insert(0, moving_crate)
+            moving_crate = arrangement[from_stack].pop(0)
+            arrangement[to_stack].insert(
+                0 if crane_type == "CrateMover 9000" else i, moving_crate
+            )
 
-    return rearranged_crates
+    return arrangement
+
+
+def get_crate_message(crates: list):
+    top_crates = []
+
+    for stack in crates:
+        crate = stack.pop(0)
+        top_crates.append(crate)
+
+    return "".join(top_crates)
 
 
 crates = parse_crates(crate_input)
-print("Starting crates:", crates)
+print("\nStarting crates:\n", crates)
 
-rearranged_crates = rearrange_crates(crates, rearrangement_procedure)
-print("Rearranged crates:", crates)
+simulated_rearranged_crates = rearrange_crates(
+    crates, rearrangement_procedure, crane_type="CrateMover 9000"
+)
+print("Simulated rearranged crates:\n", simulated_rearranged_crates)
 
-message = []
+simulated_message = get_crate_message(simulated_rearranged_crates)
+print("Theoretical message:\n", simulated_message)
 
-for stack in rearranged_crates:
-    top_crate = stack.pop(0)
-    message.append(top_crate)
+# Part 2
+print("\nStarting crates:\n", crates)
 
-print("Message:", "".join(message))
+rearranged_crates = rearrange_crates(
+    crates, rearrangement_procedure, crane_type="CrateMover 9001"
+)
+print("Rearranged crates:\n", rearranged_crates)
+
+message = get_crate_message(rearranged_crates)
+print("Message:\n", message)
