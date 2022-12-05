@@ -1,7 +1,6 @@
 # Day 4: Camp Cleanup
 
 from pathlib import Path
-import string
 
 input = Path("input.txt").read_text()
 assignment_pairs = list(filter(None, input.split("\n")))  # filter out newlines
