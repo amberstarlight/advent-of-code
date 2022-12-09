@@ -120,7 +120,7 @@ for line in terminal_output_lines:
 
         current_dir.add_child(new_dir)
 
-print(root_dir)
+# print(root_dir)
 
 
 def sum_directories_smaller_than(files: list, size: int):
@@ -138,4 +138,37 @@ def sum_directories_smaller_than(files: list, size: int):
     return total_size
 
 
-print(sum_directories_smaller_than(root_dir.get_children(), 100000))
+def get_dirs_larger_than(files: list, size: int):
+    dirs = []
+
+    for file in files:
+        if file.filetype != "directory":
+            continue
+
+        if file.get_size() >= size:
+            dirs.append(file)
+
+        x = get_dirs_larger_than(file.get_children(), size)
+
+        if len(x) > 0:
+            dirs.extend(x)
+
+    return dirs
+
+
+print("Part 1:", sum_directories_smaller_than(root_dir.get_children(), 100000))
+
+# Part 2
+
+filesystem_size = 70000000
+required_size = 30000000
+free_space = filesystem_size - root_dir.get_size()
+
+print("Free space:", free_space, "\n")
+
+candidate_dirs = get_dirs_larger_than(
+    root_dir.get_children(), required_size - free_space
+)
+candidate_dirs.sort(key=File.get_size)
+
+print(candidate_dirs[0].get_size())
