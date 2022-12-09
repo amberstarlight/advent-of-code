@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-input = Path("test_input.txt").read_text()
+input = Path("input.txt").read_text()
 
 terminal_output_lines = list(filter(None, input.split("\n")))
 
@@ -13,46 +13,64 @@ class File:
         filetype: str,
         name: str,
         size: int,
-        parent_directory: str = "",
-        children: list = [],
+        parent_directory,
     ):
         self.filetype = filetype
         self.name = name
-        self.size = size
+        self.__size = size
         self.parent_directory = parent_directory
-        self.children = children
+        self.__children = []
 
     def __repr__(self):
-        return "{0}: {1}, size: {2}, {3}, {4}".format(
+        return "{0}: {1}, size: {2}, {3}, contents: {4} \n".format(
             self.filetype.title(),
             self.name,
-            self.size,
-            ("parent directory: " + self.parent_directory)
-            if self.parent_directory != ""
+            self.get_size(),
+            ("parent directory: " + self.parent_directory.name)
+            if self.parent_directory != None
             else "root",
-            self.children,
+            self.__children,
         )
 
+    def get_child(self, name: str):
+        match = list(filter(lambda file: file.name == name, self.__children))
+        if len(match) > 0:
+            return match[0]
+        return None
 
-filesystem = [
-    File(
-        filetype="directory",
-        name="/",
-        size=0,
-        parent_directory="",
-        children=[],
-    )
-]
+    def add_child(self, file):
+        self.__children.append(file)
 
-root = filesystem[0].children
-dir_depth = 0
-current_dir = ""
-prev_dir = ""
+    def get_size(self):
+        if self.filetype == "file":
+            return self.__size
+
+        size = 0
+        for file in self.__children:
+            match file.filetype:
+                case "file":
+                    size += file.__size
+                case "directory":
+                    size += file.get_size()
+
+        return size
+
+    def get_children(self):
+        return self.__children
+
+
+root_dir = File(
+    filetype="directory",
+    name="/",
+    size=0,
+    parent_directory=None,
+)
+
+current_dir = root_dir
+prev_dir = None
 
 for line in terminal_output_lines:
     start_char = line[0]
-
-    print("pwd =", current_dir)
 
     # we have 4 possible cases
     # $ cd <dir>
@@ -68,16 +86,13 @@ for line in terminal_output_lines:
         if command == "cd":
             match cmd_args:
                 case "..":
-                    dir_depth -= 1
-                    current_dir = prev_dir
+                    current_dir = current_dir.parent_directory
                 case "/":
-                    dir_depth = 0
                     prev_dir = current_dir
-                    current_dir = cmd_args
+                    current_dir = root_dir
                 case _:
-                    dir_depth += 1
                     prev_dir = current_dir
-                    current_dir = cmd_args
+                    current_dir = current_dir.get_child(cmd_args)
 
         if command == "ls":
             # nothing to do,
@@ -88,24 +103,39 @@ for line in terminal_output_lines:
         file = File(
             filetype="file",
             name=file_info[1],
-            size=file_info[0],
+            size=int(file_info[0]),
             parent_directory=current_dir,
         )
-        print(file)
+
+        current_dir.add_child(file)
 
     if start_char == "d":
-        dir_name = line[4]
+        dir_name = line[4:]
         new_dir = File(
             filetype="directory",
             name=dir_name,
             size=0,
             parent_directory=current_dir,
         )
-        print(new_dir)
 
-        if current_dir == "/":
-            root.append(new_dir)
-        else:
-            root.children.append()
+        current_dir.add_child(new_dir)
 
-print(filesystem)
+print(root_dir)
+
+
+def sum_directories_smaller_than(files: list, size: int):
+    total_size = 0
+
+    for file in files:
+        if file.filetype != "directory":
+            continue
+
+        if file.get_size() <= size:
+            total_size += file.get_size()
+
+        total_size += sum_directories_smaller_than(file.get_children(), size)
+
+    return total_size
+
+
+print(sum_directories_smaller_than(root_dir.get_children(), 100000))
