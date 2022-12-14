@@ -1,25 +1,31 @@
 # Day 8: Treetop Tree House
 
 from pathlib import Path
+import math
 
-input = Path("input.txt").read_text()
+input = Path("test_input.txt").read_text()
 tree_input = list(filter(None, input.split("\n")))
 
 
 class Tree:
-    def __init__(self, x_pos, y_pos, height, visibility=None):
+    def __init__(self, x_pos, y_pos, height, visibility=None, view_distance=None):
         self.position = [int(x_pos), int(y_pos)]
         self.height = int(height)
 
         if visibility == None:
-            self.visibility = {
-                "top": None,
-                "left": None,
-                "right": None,
-                "bottom": None,
-            }
+            self.visibility = {"top": None, "left": None, "right": None, "bottom": None}
         else:
             self.visibility = visibility
+
+        if view_distance == None:
+            self.view_distance = {
+                "top": 0,
+                "left": 0,
+                "right": 0,
+                "bottom": 0,
+            }
+        else:
+            self.view_distance = view_distance
 
     def __repr__(self) -> str:
         return "Tree: {position}, height: {height}, {visibility}\n".format(
@@ -31,10 +37,18 @@ class Tree:
     def set_visibility(self, direction, visibility):
         self.visibility[direction] = visibility
 
+    def set_view_distance(self, direction, distance):
+        self.view_distance[direction] = distance
+
+    def get_view_distance(self, direction):
+        return self.view_distance[direction]
+
+    def get_scenic_score(self) -> int:
+        return math.prod(self.view_distance.values())
+
     def is_visible(self) -> bool:
         if any(self.visibility.values()):
             return True
-
         return False
 
 
@@ -52,6 +66,12 @@ for y, row in enumerate(tree_input):
                 "left": True if x == 0 else None,
                 "right": True if x == (len(row) - 1) else None,
                 "bottom": True if y == (len(tree_input) - 1) else None,
+            },
+            view_distance={
+                "top": 0 if y == 0 else 0,
+                "left": 0 if x == 0 else 0,
+                "right": 0 if x == (len(row) - 1) else 0,
+                "bottom": 0 if y == (len(tree_input) - 1) else 0,
             },
         )
         tree_grid[y].append(tree)
@@ -100,8 +120,8 @@ for y_position in range(1, len(tree_grid) - 1):
         print(
             current_tree.position,
             current_tree.height,
-            current_tree.visibility,
             current_tree.is_visible(),
+            current_tree.view_distance,
         )
 
 
