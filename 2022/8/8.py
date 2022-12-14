@@ -2,12 +2,8 @@
 
 from pathlib import Path
 
-input = Path("test_input.txt").read_text()
-
+input = Path("input.txt").read_text()
 tree_input = list(filter(None, input.split("\n")))
-
-# tree_input[0] and [-1] are all visible
-# as is every start and end tree of each row
 
 
 class Tree:
@@ -61,7 +57,59 @@ for y, row in enumerate(tree_input):
         tree_grid[y].append(tree)
 
 
-for a in range(1, len(tree_grid) - 1):
-    for b in range(1, len(tree_grid[a]) - 1):
-        current_tree = tree_grid[a][b]
-        print(current_tree.position, current_tree.height, current_tree.visibility)
+def check_visibility(tree: Tree, new_tree: Tree, direction: str):
+    if tree.height <= new_tree.height:
+        tree.set_visibility(direction=direction, visibility=False)
+    else:
+        tree.set_visibility(direction=direction, visibility=True)
+
+
+# tree_input[0] and [-1] are all visible
+# as is every start and end tree of each row
+for y_position in range(1, len(tree_grid) - 1):
+    for x_position in range(1, len(tree_grid[y_position]) - 1):
+        current_tree = tree_grid[y_position][x_position]
+
+        for _1 in range(y_position, 0, -1):
+            check_visibility(
+                current_tree, tree_grid[y_position - _1][x_position], direction="top"
+            )
+            if current_tree.visibility["top"] == False:
+                break
+
+        for _2 in range(x_position, 0, -1):
+            check_visibility(
+                current_tree, tree_grid[y_position][x_position - _2], direction="left"
+            )
+            if current_tree.visibility["left"] == False:
+                break
+
+        for _3 in range(x_position + 1, len(tree_grid[y_position])):
+            check_visibility(current_tree, tree_grid[y_position][_3], direction="right")
+
+            if current_tree.visibility["right"] == False:
+                break
+
+        for _4 in range(y_position + 1, len(tree_grid)):
+            check_visibility(
+                current_tree, tree_grid[_4][x_position], direction="bottom"
+            )
+            if current_tree.visibility["bottom"] == False:
+                break
+
+        print(
+            current_tree.position,
+            current_tree.height,
+            current_tree.visibility,
+            current_tree.is_visible(),
+        )
+
+
+visible_trees = 0
+
+for row in tree_grid:
+    for tree in row:
+        if tree.is_visible():
+            visible_trees += 1
+
+print(visible_trees)
