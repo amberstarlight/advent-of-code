@@ -26,9 +26,11 @@ class File:
             self.filetype.title(),
             self.name,
             self.get_size(),
-            ("parent directory: " + self.parent_directory.name)
-            if self.parent_directory != None
-            else "root",
+            (
+                ("parent directory: " + self.parent_directory.name)
+                if self.parent_directory != None
+                else "root"
+            ),
             self.__children,
         )
 
